@@ -1,0 +1,214 @@
+%\VignetteIndexEntry{Triform users guide}
+%\VignetteDepends{triform}
+%\VignetteKeywords{Preprocessing, ChIP-Seq, Sequencing}
+%\VignettePackage{triform}
+\documentclass[11pt]{article}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{color, pdfcolmk}
+\usepackage[authoryear,round]{natbib}
+\usepackage[utf8]{inputenc} %unicode support
+\bibliographystyle{plainnat}
+
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+\author{Karl Kornacker\footnote{kornacker@midohio.twcbc.com} and Tony
+  Håndstad\footnote{tony.handstad@gmail.com}}
+
+\begin{document}
+\title{Triform: peak finding in ChIP-Seq enrichment profiles for transcription factors}
+\maketitle
+
+
+
+\textnormal {\normalfont}
+A guide for using the Triform algorithm to predict transcription factor binding sites from ChIP-Seq data
+
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+
+
+\section{Licensing}
+
+This package is available under the GPL 2.0. license.
+
+
+
+
+\section{Introduction}
+Chromatin immunoprecipitation combined with high throughput sequencing (ChIP-Seq) is
+currently the method of choice for genome-wide mapping of binding sites for transcription factors on DNA.
+An essential step in the analysis of ChIP-Seq data is the genome-wide identification of enriched (peak) regions.
+As ChIP-seq data can be noisy \cite{park_chip-seq:_2009}, it can be challenging 
+to identify all significantly enriched regions in a reliable way, and with an acceptable false discovery rate \cite{rye2011manually}.
+
+The Triform algorithm \cite{kornacker2012triform} represents an improved approach for automatic
+identification of peaks in ChIP-Seq enrichment profiles.
+The method uses model-free statistics to identify peak-like distributions of sequencing reads, 
+taking advantage of improved peak definition in combination with known characteristics of ChIP-Seq data. 
+
+The statistical test in Triform is fully nonparametric, i.e. free from any assumed relationships or fitted
+parameters. In particular, the test is free from any assumed background model and is therefore
+more robust than model-based tests, which depend on locally uniform background models and
+fitted background parameters.
+
+The algorithm identifies triangle-peak-like shapes from the distribution profile of ChIP-Seq reads.
+A peak region is defined as a region with a significantly negative mean second derivative of the read coverage profile.
+Such regions have inherently limited width, core sub-regions are directly identified, 
+and these can be used to test for well-defined shifts between overlapping profiles on opposite strands. 
+The test can also handle overlapping peaks. 
+Consequently, the Triform algorithm is able to reject false positive noisy plateaus,
+thereby increasing specificity with little or no loss of sensitivity.
+
+Like other related algorithms (e.g. FindPeaks \cite{fejes2008find}), 
+Triform tests for local peak-like coverage distributions, 
+but achieves greater sensitivity, specificity and control of FDR 
+by utilizing the Hoel test for detection of significant Poisson inhomogeneities \cite{hoel1945testing}. 
+Triform computes Hoel test statistics at each position $x$ on each strand,
+testing whether the reads coverage at $x$ is significantly higher than the average coverage
+at the two flanking positions $x-d$ and $x+d$ (default d=150bp). 
+The probability distribution of the Hoel test statistic is approximately standard normal for arbitrary nonzero coverage, 
+enabling accurate calculation of p-values which are generally low enough to assure strong control of false discovery rate.
+
+Triform takes advantage of multiple peak profile characteristics.
+These characteristics include the shift property, which occurs because the full sequence fragments, 
+typically with an average length around 200bp, are sequenced only 25-50bp from each side. 
+The algorithm can use independent control samples, and handles biological replicates.
+
+Triform has been shown to outperform several existing methods in the identification of representative peak profiles in curated
+benchmark data sets for the transcription factors NRSF/REST, SRF and MAX \cite{rye2011manually}.
+In many cases, Triform is able to identify peaks that are more consistent with
+biological function, compared with other methods. 
+We refer to the paper \cite{kornacker2012triform} for further theoretical background on the method,
+a full description of each step of algorithm, thorough comparisons with other methods, and a small case-study.
+
+
+
+\section{Overview of Triform}
+Usage of Triform is split in two steps.
+In the preprocessing step, information describing ChIP-seq tags in the form of BED-formatted files are converted to 
+a format that describes the tag counts along the chromosomes on the different strands.
+The BED format is a tab-delimited format where each line describes the position of a mapped read (tag) in the form of space/chromosome, start, end, name, score, strand.
+Triform will ignore the name and score columns as they are not relevant here.
+Both control signal (i.e. ChIP-seq reads for control experiments without a TF-specific antibody) and up to several different TF signal files can be processed in the same run.
+After the preprocessing step, triform itself can be run and will then output the enriched regions.
+
+Both the preprocessing step and the triform step consists of running a single function. Both functions require certain parameters.
+It is easiest to use a configuration file to supply these parameters, but the parameters can also be supplied directly to the preprocessing or triform function.
+The configuration file must be in YAML format. See \url{http://biostat.mc.vanderbilt.edu/wiki/Main/YamlR} for a description of YamlR and 
+\url{http://cran.r-project.org/web/packages/yaml/index.html} for a description of the yaml R package.
+An example configuration file is available under the inst/extdata directory in the triform package, and its contents is also shown below.
+
+
+\section{Parameters and configuration file}
+A total number of 12 parameters must be set to run Triform. 
+These are most easily supplied using a configuration file in the YAML-format. Each line contains the parameter name and value separated by a colon.
+Some parameters can take multiple values, these values are then given one per line with a dash before the value.
+Below is an example of a configuration file. The text after the hashes are comments, explaining the purpose of the parameter.
+
+\begin{verbatim}
+READ.PATH : ./tmp  ## Path to source files (reads in BED format)
+COVER.PATH : ./chrcovers ## Path for chromosome coverage files
+OUTPUT.PATH : ./tmp/Triform_output.csv ## Path for output file (including filename)
+
+TARGETS :
+## Filenames for TF experiments
+## Must include replicate name (_rep1 or _rep2), and .bed file ending
+ - srf_huds_Gm12878_rep1.bed
+ - srf_huds_Gm12878_rep2.bed
+
+CONTROLS :
+## Filenames for control/background experiments
+## Must include replicate name (_rep1 or _rep2), and .bed file ending
+ - backgr_huds_Gm12878_rep1.bed
+ - backgr_huds_Gm12878_rep2.bed
+
+READ.WIDTH : 100  ## Extended read width (used when preprocessing data) (w)
+FLANK.DELTA : 150 ## Fixed spacing between central and flanking locations (d)
+MAX.P : 0.1       ## Maximum p-value (used to calculate min.z)
+
+MIN.WIDTH : 10  ## Minimum peak width (min.n)
+MIN.QUANT : 0.375 ## Minimum quantile of enrichment ratios.
+MIN.SHIFT : 10  ## Minimum inter-strand lag between peak coverage distributions
+
+CHRS : ## Chromosomes to be used in Triform peak detection
+ - chrY
+
+\end{verbatim}
+
+
+
+\section{Preprocessing BED files}
+Start by loading the triform package.
+
+<<Loading triform>>=
+library(triform)
+@
+
+This will make the functions ``preprocess'' and ``triform'' available.
+Here, we will use sample data available in the inst/extdata directory for the package.
+A configuration file similar to the one shown above is also available in this directory.
+For this vignette, we must get the correct paths to the package at run-time
+using the system.file function and supply the paths as additional arguments. 
+These will override any settings (i.e. paths) in the configuration file.
+
+<<Preprocessing BED files using configuration file>>=
+config.file.path = system.file("extdata", "config.yml", package="triform")
+data.file.path = system.file("extdata", package="triform")
+preprocess(config.file.path, params=list(READ.PATH=data.file.path, COVER.PATH=data.file.path))
+@ 
+
+Each replicate of each TF or control signal should be in its own BED file.
+The preprocessing will first convert all files with the .bed-extension 
+in the READ.PATH directory to IRanges RangedData objects and save them as RData files.
+Thereafter, the preprocessing will use the READ.WIDTH parameter to divide each chromosome
+into segments and calculate for each signal and strand, the number of reads in each segment.
+The preprocessing ends by saving one file for each chromosome in the dataset, 
+combining all signals and replicate information for the given chromosome in one file.
+
+\section{Running Triform}
+After preprocessing, Triform can be run similarly, 
+by supplying the configuration file path and COVER.PATH to the triform function:
+
+<<<Running triform using configuration file>>=
+  triform(config.file.path, params=list(COVER.PATH=data.file.path))
+@ 
+
+Triform will then process each chromosome and output each predicted peak region to a file whose path was given in the OUTPUT.PATH parameter.
+
+Note that it is also possible to run preprocessing and Triform 
+by supplying all the parameters directly instead of using a configuration file.
+In that case, populate a named list with the parameters 
+and consider setting the configPath parameter to NULL. 
+Parameters supplied in the params list will overwrite the values set by any parameters in the configuration file.
+
+%% <<Running preprocess and triform without using a configuration file>>=    eval=FALSE
+\begin{verbatim}
+preprocess(configPath=NULL, params=list(READ.PATH="./inst/extdata", 
+           COVER.PATH="./inst/extdata", READ.WIDTH=100))
+
+triform(configPath=NULL, params=list(COVER.PATH = "./inst/extdata", 
+        OUTPUT.PATH = "./inst/extdata/Triform_output.csv", 
+        MAX.P = 0.1, MIN.WIDTH = 10, MIN.QUANT = 0.375, MIN.SHIFT = 10, 
+        FLANK.DELTA = 150, CHRS = c("chrY"), CONTROLS =
+        c("backgr_huds_Gm12878_rep1.bed", "backgr_huds_Gm12878_rep2.bed"),
+        TARGETS=c("srf_huds_Gm12878_rep1.bed", "srf_huds_Gm12878_rep2.bed")))
+        
+\end{verbatim}
+%%@ 
+
+
+\section{Session info}
+<<session info>>=
+  sessionInfo()
+@ 
+
+
+%%\bibliographystyle{unsrt}
+\bibliography{triform}
+
+\end{document}
+

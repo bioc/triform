@@ -1,0 +1,9 @@
+##exportPattern("^[[:alpha:]]+")
+
+
+## importFrom(IRanges, IRanges, RangedData)
+## importClassesFrom(IRanges, IRanges, RangedData)
+## importMethodsFrom(IRanges, space, score, sort, unique, order, duplicated, start, end, lapply)
+
+import(IRanges, yaml)
+export(preprocess, triform)

@@ -1,0 +1,22 @@
+citHeader("To cite the R package 'triform' in your publication please use:")
+
+citEntry(entry  = "article",
+         title  = "The Triform algorithm: improved sensitivity and specificity in ChIP-Seq peak finding",
+         author = personList(
+                 person(first="Karl", last="Kornacker"),
+                 person(first="Morten Beck", last="Rye"),
+                 person(first="Tony", last="Håndstad"),
+                 person(first="Finn", last="Drabløs")),
+	    journal = "BMC Bioinformatics",
+	    year = "2012",
+	    volume  = "TODO",
+	    number =  "TODO",
+
+		note = paste("R package version ", R.Version()$major, ".", R.Version()$minor, sep = ""),
+		textVersion = paste("Karl Kornacker, Morten Beck Rye, Tony Håndstad and Finn Drabløs. (2012) The Triform algorithm: improved sensitivity and specificity in ChIP-Seq peak finding, BMC Bioinformatics, TODO:xx-xx. DOI TODO")
+	)
+
+citFooter("This free open-source software implements academic
+research by the authors and co-workers. If you use it,
+please support the project by citing the appropriate
+journal articles.")
