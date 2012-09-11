@@ -15,7 +15,7 @@
 \newcommand{\scst}{\scriptstyle}
 
 \author{Karl Kornacker\footnote{kornacker@midohio.twcbc.com} and Tony
-  Håndstad\footnote{tony.handstad@gmail.com}}
+  H\r{a}ndstad\footnote{tony.handstad@gmail.com}}
 
 \begin{document}
 \title{Triform: peak finding in ChIP-Seq enrichment profiles for transcription factors}
