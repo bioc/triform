@@ -309,7 +309,7 @@ test.chr <- function(chr,
                                         # merge overlapping Form-2 and Form-3 peaks into Form-1 peaks
   peak.info <- with(peak.info,peak.info[order(PEAK.START,PEAK.END),])
   rng <- with(peak.info,IRanges(start=PEAK.START,end=PEAK.END))
-  ov <- matrix(as.matrix(findOverlaps(rng,maxgap=1,ignoreSelf=TRUE,ignoreRedundant=TRUE)),ncol=2)
+  ov <- matrix(as.matrix(findOverlaps(rng,maxgap=1,drop.self=TRUE,drop.redundant=TRUE)),ncol=2)
   if(!!nrow(ov)) {
     peak.info[ov[,1],"PEAK.FORM"] <- 1
     peak.info[ov[,1],"PEAK.LOC"] <- round((peak.info[ov[,1],"PEAK.LOC"] + peak.info[ov[,2],"PEAK.LOC"])/2)

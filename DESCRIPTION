@@ -2,15 +2,15 @@ Package: triform
 Type: Package
 Title: Triform finds enriched regions (peaks) in transcription factor
         ChIP-sequencing data
-Version: 1.13.0
-Date: 2012-07-20
+Version: 1.13.1
+Date: 2016-02-11
 Encoding: UTF-8
 Authors@R: c(person("Karl Kornacker", "Developer", role = "aut", email
         = "kornacker@midohio.twcbc.com"), person("Tony Handstad",
         "Developer", role = c("aut", "cre"),
         email="tony.handstad@gmail.com"))
 Depends: R (>= 2.11.0), IRanges, yaml
-Imports: IRanges, yaml, BiocGenerics
+Imports: BiocGenerics, IRanges (>= 2.5.27), yaml
 Suggests: RUnit
 Description: The Triform algorithm uses model-free statistics to
         identify peak-like distributions of TF ChIP sequencing reads,
