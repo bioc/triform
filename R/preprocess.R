@@ -60,7 +60,7 @@ makeRangedData <- function(filePath="."){
       colClasses=c("character", rep("integer",2), rep("NULL",2), "character"))
     colnames(dfr) <- c("space", "start", "end", "strand")
     dfr <- with(dfr, dfr[order(space, start, end), ])
-    rd <- as(dfr, "RangedData")
+    rd <- RangedData(IRanges(dfr$start,dfr$end),space = dfr$space,strand=dfr$strand)
     save(rd, file=file.path(filePath, sub("bed$", "RData", file)))
   }
 }
