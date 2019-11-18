@@ -2,7 +2,7 @@ Package: triform
 Type: Package
 Title: Triform finds enriched regions (peaks) in transcription factor
         ChIP-sequencing data
-Version: 1.29.0
+Version: 1.29.1
 Date: 2016-02-11
 Encoding: UTF-8
 Authors@R: c(person("Karl Kornacker", "Developer", role = "aut", email
@@ -22,3 +22,4 @@ Author: Karl Kornacker Developer [aut], Tony Handstad Developer [aut,
         cre]
 Maintainer: Thomas Carroll <tc.infomatics@gmail.com>
 biocViews: Sequencing, ChIPSeq
+PackageStatus: Deprecated
